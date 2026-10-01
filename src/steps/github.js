@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const OWNER = 'myrnagamal1';
 const BASE = 'https://api.github.com';
 
@@ -62,4 +63,4 @@ async function deleteRepo(repoName) {
   // best-effort — ignore errors
 }
 
-module.exports = { checkRepo, createRepo, uploadFile, enablePages, deleteRepo, _repoNameToUrl };
+module.exports = { checkRepo, createRepo, uploadFile, enablePages, deleteRepo };
