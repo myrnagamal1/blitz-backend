@@ -40,7 +40,7 @@ async function createSheet(eventName) {
     requestBody: {
       properties: { title: eventName },
       sheets: [{
-        properties: { title: SHEET_NAME },
+        properties: { title: SHEET_NAME, gridProperties: { frozenRowCount: 1 } },
         data: [{
           startRow: 0,
           startColumn: 0,
