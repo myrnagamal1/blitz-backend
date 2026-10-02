@@ -1,0 +1,9 @@
+applications:
+  - name: blitz-backend
+    memory: 256M
+    instances: 1
+    buildpacks:
+      - nodejs_buildpack
+    command: node src/index.js
+    env:
+      NODE_ENV: production
