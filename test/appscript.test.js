@@ -32,7 +32,8 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn().mockReturnValue('template content with {{SPREADSHEET_ID}} placeholder')
 }));
 
-const { _injectSheetId } = require('../src/steps/appscript');
+const { _injectSheetId, deployScript } = require('../src/steps/appscript');
+const { google } = require('googleapis');
 
 describe('Apps Script module', () => {
   it('replaces {{SPREADSHEET_ID}} with the given sheet ID', () => {
@@ -50,4 +51,20 @@ describe('Apps Script module', () => {
   it('throws if spreadsheetId is empty', () => {
     expect(() => _injectSheetId('template', '')).toThrow(/spreadsheetId/);
   });
+
+  it('uploadContent includes an appsscript JSON manifest with webapp access settings', async () => {
+    process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ type: 'service_account' });
+    await deployScript('sheet-id-123');
+
+    const script = google.script.mock.results[0].value;
+    const updateCall = script.projects.updateContent.mock.calls[0][0];
+    const files = updateCall.requestBody.files;
+
+    const manifest = files.find(f => f.name === 'appsscript' && f.type === 'JSON');
+    expect(manifest).toBeDefined();
+    const manifestObj = JSON.parse(manifest.source);
+    expect(manifestObj.webapp.access).toBe('ANYONE_ANONYMOUS');
+    expect(manifestObj.webapp.executeAs).toBe('USER_DEPLOYING');
+  });
 });
+

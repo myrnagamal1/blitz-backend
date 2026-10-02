@@ -29,12 +29,22 @@ async function deployScript(spreadsheetId) {
   });
   const scriptId = project.data.scriptId;
 
-  // Upload the source
+  // Upload the source + manifest (manifest required by Apps Script API;
+  // webapp access settings live here, not in the deployment call)
+  const manifest = JSON.stringify({
+    timeZone: 'Etc/GMT',
+    exceptionLogging: 'STACKDRIVER',
+    runtimeVersion: 'V8',
+    webapp: { executeAs: 'USER_DEPLOYING', access: 'ANYONE_ANONYMOUS' }
+  });
   await script.projects.updateContent({
     scriptId,
     requestBody: {
       scriptId,
-      files: [{ name: 'Code', type: 'SERVER_JS', source }]
+      files: [
+        { name: 'Code', type: 'SERVER_JS', source },
+        { name: 'appsscript', type: 'JSON', source: manifest }
+      ]
     }
   });
 
@@ -45,17 +55,13 @@ async function deployScript(spreadsheetId) {
   });
   const versionNumber = versionRes.data.versionNumber;
 
-  // Deploy as web app
+  // Deploy as web app — web-app access settings are in the manifest, not here
   const deployment = await script.projects.deployments.create({
     scriptId,
     requestBody: {
       versionNumber,
       manifestFileName: 'appsscript',
-      description: 'Blitz event web app',
-      config: {
-        executeAs: 'USER_DEPLOYING',
-        access: 'ANYONE_ANONYMOUS'
-      }
+      description: 'Blitz event web app'
     }
   });
 
