@@ -1,9 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const { checkRepo, createRepo, uploadFile, enablePages, deleteRepo } = require('./steps/github');
-const { createSheet } = require('./steps/sheets');
-const { deployScript } = require('./steps/appscript');
 const { renderTemplate, getPhonePattern } = require('./generator');
+const { addLead, getLeads, getLeaderboard } = require('./leads');
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -30,7 +29,6 @@ app.post('/create-event', async (req, res) => {
     days, partners, accountValidation, accounts, rooms, resources
   } = req.body;
 
-  // Input validation
   if (!repoName || !REPO_NAME_RE.test(repoName)) {
     return res.status(400).json({ error: 'Invalid repo name — use lowercase letters, numbers, hyphens only' });
   }
@@ -42,7 +40,6 @@ app.post('/create-event', async (req, res) => {
   }
 
   let repoCreated = false;
-  let sheetId = null;
 
   try {
     // Step 1: Check repo availability
@@ -62,21 +59,15 @@ app.post('/create-event', async (req, res) => {
       }
     }
 
-    // Step 4: Create Google Sheet
-    const sheet = await createSheet(eventName);
-    sheetId = sheet.spreadsheetId;
-
-    // Step 5: Deploy Apps Script web app
-    const { scriptUrl } = await deployScript(sheetId);
-
-    // Step 6: Generate index.html from template
+    // Step 4: Generate index.html from template
     const phonePattern = getPhonePattern(phoneFormat);
+    const backendUrl = process.env.BACKEND_URL || 'https://blitz-backend.cfapps.eu10-004.hana.ondemand.com';
     const html = renderTemplate({
       eventName,
       country,
       leadTarget: leadTarget || 65,
       dashPassword,
-      webAppUrl: scriptUrl,
+      webAppUrl: `${backendUrl}/event/${repoName}`,
       phoneRegex: phonePattern.regex,
       phoneHint: phonePattern.hint,
       days,
@@ -89,22 +80,49 @@ app.post('/create-event', async (req, res) => {
       resourcesEnabled: !!(resources && resources.length > 0)
     });
 
-    // Step 7: Push index.html to repo
+    // Step 5: Push index.html to repo
     await uploadFile(repoName, 'index.html', Buffer.from(html).toString('base64'));
 
-    // Step 8: Enable GitHub Pages
+    // Step 6: Enable GitHub Pages
     await enablePages(repoName);
 
     res.json({ url: `https://myrnagamal1.github.io/${repoName}` });
 
   } catch (err) {
-    // Cleanup: delete repo if it was created
     if (repoCreated) {
       try { await deleteRepo(repoName); } catch (_) { /* best-effort */ }
     }
-    // Sheet deletion is best-effort (not implemented — Google Drive allows manual deletion)
     res.status(500).json({ error: err.message, failedStep: err.step || 'Unknown step' });
   }
+});
+
+// Lead submission endpoint (called by the generated event app)
+app.post('/event/:repoName/leads', (req, res) => {
+  const { repoName } = req.params;
+  if (!REPO_NAME_RE.test(repoName)) return res.status(400).json({ status: 'error', message: 'Invalid repo name' });
+  const lead = req.body;
+  if (!lead || !lead.partner) return res.status(400).json({ status: 'error', message: 'partner is required' });
+  addLead(repoName, lead);
+  res.json({ status: 'ok' });
+});
+
+// Leaderboard + leads endpoint (called by the generated event app)
+app.get('/event/:repoName', (req, res) => {
+  const { repoName } = req.params;
+  if (!REPO_NAME_RE.test(repoName)) return res.status(400).json({ leaderboard: [], rows: [] });
+  const leaderboard = getLeaderboard(repoName);
+  const rows = getLeads(repoName);
+  res.json({ leaderboard, rows, updated: new Date().toISOString() });
+});
+
+// Dashboard data (password-protected, returns raw leads)
+app.post('/event/:repoName/dashboard', (req, res) => {
+  const { repoName } = req.params;
+  const { password } = req.body;
+  if (!REPO_NAME_RE.test(repoName)) return res.status(400).json({ error: 'Invalid repo name' });
+  // Password check is done client-side in the event app (dashPassword baked into template)
+  const rows = getLeads(repoName);
+  res.json({ rows });
 });
 
 const PORT = process.env.PORT || 3000;

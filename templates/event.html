@@ -1636,13 +1636,12 @@ function lfSubmit() {
   btn.textContent = 'Submitting…';
   status.textContent = '';
 
-  const params = new URLSearchParams({
-    action: 'submitLead',
-    partner, rep, account, contact, title, phone, email, industry, outcome, nextstep, ai, notes,
-    onMaster: onMaster ? 'YES' : 'NO — not on master list'
-  });
-
-  fetch(WEB_APP_URL + '?' + params.toString())
+  fetch(WEB_APP_URL + '/leads', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ partner, rep, account, contact, title, phone, email, industry, outcome, nextstep, ai, notes,
+      onMaster: onMaster ? 'YES' : 'NO — not on master list' })
+  })
     .then(r => r.json())
     .then(d => {
       if (d.status === 'ok' || d.result === 'success') {
