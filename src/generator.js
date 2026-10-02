@@ -3,7 +3,7 @@ const path = require('path');
 
 const PHONE_PATTERNS = {
   egypt:   { regex: '01[0-9]{9}|\\+201[0-9]{9}',     hint: 'Format: 01XXXXXXXXX or +201XXXXXXXXX' },
-  saudi:   { regex: '05[0-9]{8}|\\+9665[0-9]{8}',    hint: 'Format: 05XXXXXXXX or +9665XXXXXXXX' },
+  'saudi-arabia': { regex: '05[0-9]{8}|\\+9665[0-9]{8}', hint: 'Format: 05XXXXXXXX or +9665XXXXXXXX' },
   uae:     { regex: '05[0-9]{8}|\\+9715[0-9]{8}',    hint: 'Format: 05XXXXXXXX or +9715XXXXXXXX' },
   morocco: { regex: '06[0-9]{8}|\\+2126[0-9]{8}',    hint: 'Format: 06XXXXXXXX or +2126XXXXXXXX' },
   kuwait:  { regex: '[0-9]{8}|\\+965[0-9]{8}',        hint: 'Format: 8 digits or +965XXXXXXXX' },
