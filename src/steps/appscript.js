@@ -38,13 +38,24 @@ async function deployScript(spreadsheetId) {
     }
   });
 
+  // Create a numbered version before deploying
+  const versionRes = await script.projects.versions.create({
+    scriptId,
+    requestBody: { description: 'v1' }
+  });
+  const versionNumber = versionRes.data.versionNumber;
+
   // Deploy as web app
   const deployment = await script.projects.deployments.create({
     scriptId,
     requestBody: {
-      versionNumber: 1,
+      versionNumber,
       manifestFileName: 'appsscript',
-      description: 'Blitz Day auto-deploy'
+      description: 'Blitz event web app',
+      config: {
+        executeAs: 'USER_DEPLOYING',
+        access: 'ANYONE_ANONYMOUS'
+      }
     }
   });
 

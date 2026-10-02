@@ -3,6 +3,9 @@ jest.mock('googleapis', () => {
     data: { scriptId: 'mock-script-id' }
   });
   const mockUpdateContent = jest.fn().mockResolvedValue({});
+  const mockVersionsCreate = jest.fn().mockResolvedValue({
+    data: { versionNumber: 1 }
+  });
   const mockDeploy = jest.fn().mockResolvedValue({
     data: { deploymentId: 'mock-deployment-id' }
   });
@@ -17,6 +20,7 @@ jest.mock('googleapis', () => {
         projects: {
           create: mockCreate,
           updateContent: mockUpdateContent,
+          versions: { create: mockVersionsCreate },
           deployments: { create: mockDeploy }
         }
       })
