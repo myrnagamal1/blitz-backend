@@ -14,7 +14,13 @@ const PHONE_PATTERNS = {
   tunisia: { regex: '[0-9]{8}|\\+216[0-9]{8}',        hint: 'Format: 8 digits or +216XXXXXXXX' },
   algeria: { regex: '05[0-9]{8}|\\+2135[0-9]{8}',    hint: 'Format: 05XXXXXXXX or +2135XXXXXXXX' },
   libya:   { regex: '09[0-9]{8}|\\+2189[0-9]{8}',    hint: 'Format: 09XXXXXXXX or +2189XXXXXXXX' },
-  generic: { regex: '[0-9]{7,15}|\\+[0-9]{7,15}',    hint: 'Format: 7–15 digit number, optional + prefix' }
+  germany: { regex: '01[0-9]{9,10}|\\+491[0-9]{9,10}', hint: 'Format: 01XXXXXXXXX or +491XXXXXXXXX' },
+  france:  { regex: '0[67][0-9]{8}|\\+33[67][0-9]{8}', hint: 'Format: 06/07XXXXXXXX or +336/337XXXXXXXX' },
+  uk:      { regex: '07[0-9]{9}|\\+447[0-9]{9}',     hint: 'Format: 07XXXXXXXXX or +447XXXXXXXXX' },
+  spain:   { regex: '[67][0-9]{8}|\\+34[67][0-9]{8}', hint: 'Format: 6/7XXXXXXXX or +346/347XXXXXXXX' },
+  italy:   { regex: '3[0-9]{9}|\\+393[0-9]{9}',      hint: 'Format: 3XXXXXXXXX or +393XXXXXXXXX' },
+  netherlands: { regex: '06[0-9]{8}|\\+316[0-9]{8}', hint: 'Format: 06XXXXXXXX or +316XXXXXXXX' },
+  generic: { regex: '[0-9]{7,15}|\\+[0-9]{7,15}',    hint: 'Format: 7-15 digit number, optional + prefix' }
 };
 
 function getPhonePattern(phoneFormat) {
@@ -31,17 +37,24 @@ function renderTemplate(config) {
     '{{LEAD_TARGET}}':                String(config.leadTarget),
     '{{DASH_PASS}}':                  config.dashPassword,
     '{{WEB_APP_URL}}':                config.webAppUrl,
-    '{{DASH_URL}}':                   config.webAppUrl,
+    '{{DASH_URL}}':                   config.webAppUrl + '/leads',
+    '{{BACKEND_URL}}':                config.backendUrl || '',
     '{{PHONE_REGEX}}':                config.phoneRegex,
     '{{PHONE_HINT}}':                 config.phoneHint,
     '{{DAYS_JSON}}':                  JSON.stringify(config.days),
     '{{PARTNERS_JSON}}':              JSON.stringify(config.partners),
     '{{MASTER_ACCOUNTS_JSON}}':       JSON.stringify(config.masterAccounts || {}),
+    '{{SDE_ACCOUNT_MAP_JSON}}':        JSON.stringify(config.sdeAccountMap || {}),
+    '{{CAMPAIGN_CODE}}':               config.campaignCode || '',
     '{{ROOMS_JSON}}':                 JSON.stringify(config.rooms || null),
+    '{{AGENDA_JSON}}':                JSON.stringify(config.agenda || null),
+    '{{SDES_JSON}}':                  JSON.stringify(config.sdes || []),
     '{{RESOURCES_JSON}}':             JSON.stringify(config.resources || []),
     '{{ACCOUNT_VALIDATION_ENABLED}}': String(config.accountValidationEnabled),
     '{{ROOMS_ENABLED}}':              String(config.roomsEnabled),
-    '{{RESOURCES_ENABLED}}':          String(config.resourcesEnabled)
+    '{{RESOURCES_ENABLED}}':          String(config.resourcesEnabled),
+    '{{PHONE_MANDATORY}}':            String(config.phoneMandatory !== false),
+    '{{SURVEY_URL}}':                 config.surveyUrl || ''
   };
 
   for (const [token, value] of Object.entries(replacements)) {
