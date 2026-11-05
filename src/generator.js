@@ -37,7 +37,7 @@ function renderTemplate(config) {
     '{{LEAD_TARGET}}':                String(config.leadTarget),
     '{{DASH_PASS}}':                  config.dashPassword,
     '{{WEB_APP_URL}}':                config.webAppUrl,
-    '{{DASH_URL}}':                   config.webAppUrl + '/leads',
+    '{{DASH_URL}}':                   config.webAppUrl + '/dashboard',
     '{{BACKEND_URL}}':                config.backendUrl || '',
     '{{PHONE_REGEX}}':                config.phoneRegex,
     '{{PHONE_HINT}}':                 config.phoneHint,
